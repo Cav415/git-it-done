@@ -1,51 +1,47 @@
 var userFormEl = document.querySelector("#user-form");
 var nameInputEl = document.querySelector("#username");
-
 var repoContainerEl = document.querySelector("#repos-container");
 var repoSearchTerm = document.querySelector("#repo-search-term");
 
-var getUserRepos = function () {
-    fetch("https://api.github.com/users/octocat/repos").then(function (response) {
-        response.json().then(function (data) {
-            console.log(data);
-        });
-    });
+var formSubmitHandler = function (event) {
+    // prevent page from refreshing
+    event.preventDefault();
+
+    // get value from input element
+    var username = nameInputEl.value.trim();
+
+    if (username) {
+        getUserRepos(username);
+
+        // clear old content
+        repoContainerEl.textContent = "";
+        nameInputEl.value = "";
+    } else {
+        alert("Please enter a GitHub username");
+    }
 };
 
 var getUserRepos = function (user) {
     // format the github api url
     var apiUrl = "https://api.github.com/users/" + user + "/repos";
 
-    // make a request to the url
+    // make a get request to url
     fetch(apiUrl)
         .then(function (response) {
             // request was successful
             if (response.ok) {
+                console.log(response);
                 response.json().then(function (data) {
+                    console.log(data);
                     displayRepos(data, user);
                 });
             } else {
-                alert('Error: GitHub User Not Found');
+                alert("Error: " + response.statusText);
             }
         })
         .catch(function (error) {
-            // Notice this `.catch()` getting chained onto the end of the `.then()` method
             alert("Unable to connect to GitHub");
         });
-};
-
-var formSubmitHandler = function (event) {
-    event.preventDefault();
-    // get value from input element
-    var username = nameInputEl.value.trim();
-
-    if (username) {
-        getUserRepos(username);
-        nameInputEl.value = "";
-    } else {
-        alert("Please enter a GitHub username")
-    }
-    console.log(event);
 };
 
 var displayRepos = function (repos, searchTerm) {
@@ -54,11 +50,7 @@ var displayRepos = function (repos, searchTerm) {
         repoContainerEl.textContent = "No repositories found.";
         return;
     }
-    console.log(repos);
-    console.log(searchTerm);
 
-    // clear old content
-    repoContainerEl.textContent = "";
     repoSearchTerm.textContent = searchTerm;
 
     // loop over repos
@@ -76,6 +68,7 @@ var displayRepos = function (repos, searchTerm) {
 
         // append to container
         repoEl.appendChild(titleEl);
+
         // create a status element
         var statusEl = document.createElement("span");
         statusEl.classList = "flex-row align-center";
@@ -96,4 +89,5 @@ var displayRepos = function (repos, searchTerm) {
     }
 };
 
+// add event listeners to forms
 userFormEl.addEventListener("submit", formSubmitHandler);
